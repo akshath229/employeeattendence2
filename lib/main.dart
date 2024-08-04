@@ -23,8 +23,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            backgroundColor: AllColours.primaryColour,
+            elevation: 2,
+          ),
+          bottomNavigationBarTheme:
+              const BottomNavigationBarThemeData(backgroundColor: Colors.white),
           scaffoldBackgroundColor: AllColours.backgroundcolor,
-          appBarTheme: const AppBarTheme(color: AllColours.backgroundcolor,)),
+          appBarTheme: const AppBarTheme(
+            color: AllColours.backgroundcolor,
+          )),
       home: const Homepage(),
     );
   }

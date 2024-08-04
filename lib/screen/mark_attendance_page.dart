@@ -52,6 +52,7 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
@@ -323,8 +324,16 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                 ],
               ),
             ),
-            const SizedBox(
-              height: 15,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child: Text(
+                "Today's ",
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
             ),
             ListView.builder(
               shrinkWrap: true,
