@@ -218,11 +218,8 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                                     ),
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        attendanceNotifier
-                                            .markAttendance(context);
-                                        attendenceRecordsNotifier
-                                            .attendanceRecord(context, "Vipul",
-                                                "VIDL-001", "D");
+                                        attendanceNotifier.markAttendance(
+                                            context, ref);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         elevation: 8,
@@ -345,55 +342,93 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                 ),
               ),
             ),
+
+// Inside your ListView.builder
             ListView.builder(
               shrinkWrap: true,
               itemCount: attendenceRecords.attendanceRecords.length,
               itemBuilder: (context, index) {
                 final employee = attendenceRecords.attendanceRecords[index];
+                String statusText;
+                Color statusColor;
+                String formattedDate;
+                String formattedTime;
+
+                // Format date and time
+                try {
+                  final dateTime = DateTime.parse(employee.date);
+                  final dateFormatter = DateFormat('dd-MM-yyyy');
+                  final timeFormatter = DateFormat('h:mm a');
+
+                  formattedDate = dateFormatter.format(dateTime);
+                  formattedTime = timeFormatter.format(dateTime);
+                } catch (e) {
+                  formattedDate = 'Invalid date';
+                  formattedTime = 'Invalid time';
+                }
+
+                // Determine the text and color based on the checktype
+                switch (employee.checktype) {
+                  case 'I':
+                    statusText = 'Check In';
+                    statusColor = AllColours.green;
+                    break;
+                  case 'O':
+                    statusText = 'Check Out';
+                    statusColor = AllColours.red;
+                    break;
+                  case 'B':
+                    statusText = 'Break';
+                    statusColor = Colors.orange;
+                    break;
+                  default:
+                    statusText = 'Unknown';
+                    statusColor = Colors.grey;
+                }
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6.0),
                   child: Card(
                     elevation: 2,
                     child: Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(6)),
+                          borderRadius: BorderRadius.circular(16)),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "checkIn",
+                                statusText,
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w400,
-                                  color: AllColours.green,
+                                  color: statusColor,
                                 ),
                               ),
-                              Text(
-                                employee.empname,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              )
                             ],
                           ),
                           const SizedBox(
                             height: 6,
                           ),
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
+                              // Text(
+                              //   employee.checktype == 'B'
+                              //       ? 'Break Duration'
+                              //       : '',
+                              //   style: GoogleFonts.poppins(
+                              //     fontWeight: FontWeight.w400,
+                              //     color: Colors.black,
+                              //   ),
+                              // ),
                               Text(
-                                "check out",
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w400,
-                                  color: AllColours.red,
-                                ),
-                              ),
-                              Text(
-                                employee.date,
+                                employee.checktype == 'B'
+                                    ? 'Break started at $formattedTime' // Display break start time or duration
+                                    : '$formattedDate at $formattedTime', // Display date and time for check-in and check-out
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w400,
                                   color: Colors.black,

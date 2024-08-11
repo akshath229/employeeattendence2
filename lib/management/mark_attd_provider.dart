@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geotest/api/attendance_api.dart';
+import 'package:geotest/const/Colours.dart';
+import 'package:geotest/management/apicallvalues.dart';
+import 'package:geotest/management/attend_detail.dart';
 import 'package:geotest/service/getlocation.dart';
+import 'package:geotest/widgets.dart/textfield.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,7 +126,17 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         'checkOutDateTime', checkOutDateTime.toIso8601String());
   }
 
-  Future<void> markAttendance(BuildContext context, String checktype) async {
+  Future<void> markAttendance(BuildContext context, WidgetRef ref) async {
+    final attendenceRecords = ref.watch(attendsDetailsApiProvider);
+
+    // Show a dialog to input empcode
+    String empcode = await _showEmpCodeDialog(context);
+
+    if (empcode.isEmpty) {
+      // If the user cancels or doesn't enter any code, do nothing
+      return;
+    }
+
     state = state.copyWith(
         isLoading: true, loadingMessage: 'Getting your location');
 
@@ -142,7 +156,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
       Map<String, dynamic> requestBody = {
         "compcode": "Vipul",
-        "empcode": "VIDL-001",
+        "empcode": empcode,
         "mobile_number": "9810920364",
         "longitude": position.longitude.toString(),
         "latitude": position.latitude.toString(),
@@ -154,7 +168,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         "date": date,
         "time": formattedTime,
         "present": "1",
-        "checktype" : "O"                  // checkin- I,checkout -O,break- B,
+        "checktype": "O" // checkin- I ,checkout -O ,break- B,
       };
 
       state = state.copyWith(loadingMessage: 'Marking attendance');
@@ -173,12 +187,76 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
       await _saveCheckOutTime('--/--', DateTime.now());
 
       _showMessage(context, 'Attendance marked successfully');
-    } catch (e) {
-      _showMessage(context, 'Error marking attendance');
+      final attendanceRecordsNotifier =
+          ref.read(attendsDetailsApiProvider.notifier);
+      await attendanceRecordsNotifier.attendanceRecord(
+          context, "Vipul", empcode, "D");
     } finally {
       state = state.copyWith(isLoading: false);
-      Navigator.pop(context); // Dismiss the bottom sheet
+      Navigator.pop(context);
     }
+  }
+
+//  state = state.copyWith(
+//         checkInTime: formattedTime,
+//         checkInDateTime: now,
+//         isCheckedIn: true,
+//         checkOutTime: '--/--',
+//         totalHours: '00:00',
+//       );
+
+//       await _saveCheckInTime(formattedTime, now);
+//       await _saveCheckOutTime('--/--', DateTime.now());
+
+//       _showMessage(context, 'Attendance marked successfully');
+//       final attendanceRecordsNotifier =
+//           ref.read(attendsDetailsApiProvider.notifier);
+//       await attendanceRecordsNotifier.attendanceRecord(
+//           context, "Vipul", empcode, "D");
+//     } catch (e) {
+//       _showMessage(context, 'Error marking attendance');
+//     } finally {
+//       state = state.copyWith(isLoading: false);
+//       Navigator.pop(context);
+//     }
+//   }
+
+  Future<String> _showEmpCodeDialog(BuildContext context) async {
+    TextEditingController empCodeController = TextEditingController();
+    String empCode = '';
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AllColours.backgroundcolor,
+          content: TextFieldWidget(
+            controller: empCodeController,
+            hintText: "Enter your empcode",
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel',
+                  style: GoogleFonts.poppins(color: Colors.black)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Submit',
+                  style: GoogleFonts.poppins(color: Colors.black)),
+              onPressed: () {
+                empCode = empCodeController.text;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return empCode;
   }
 
   void showLoadingBottomSheet(
@@ -304,5 +382,4 @@ final attendanceProvider =
   final attendenceAPI = ref.watch(attendenceApiProvider);
   final locationService = ref.watch(locationServiceProvider);
   return AttendanceNotifier(attendenceAPI, locationService);
-}
-);
+});

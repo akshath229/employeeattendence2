@@ -51,7 +51,7 @@ class AttendanceRecordNotifier extends StateNotifier<AttendanceRecordState> {
         "attday": attday,
       };
 
-      String response = await attendenceAPI.sendPostRequest(requestBody);
+      String response = await attendenceAPI.sendGetRequest(requestBody);
 
       // Decode response and map to Employee objects
       List<dynamic> decodedResponse = json.decode(response);
