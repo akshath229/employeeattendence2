@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geotest/const/Colours.dart';
-import 'package:geotest/management/provider.dart';
+import 'package:geotest/management/attend_detail.dart';
+import 'package:geotest/management/mark_attd_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -41,6 +42,10 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
     final screenHeight = MediaQuery.of(context).size.height;
     final attendanceState = ref.watch(attendanceProvider);
     final attendanceNotifier = ref.read(attendanceProvider.notifier);
+
+    final attendenceRecords = ref.watch(attendsDetailsApiProvider);
+    final attendenceRecordsNotifier =
+        ref.read(attendsDetailsApiProvider.notifier);
 
     // Calculate dynamic dimensions
     final containerWidth = screenWidth * 0.9; // 90% of screen width
@@ -212,8 +217,13 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: ElevatedButton(
-                                      onPressed: () => attendanceNotifier
-                                          .markAttendance(context),
+                                      onPressed: () {
+                                        attendanceNotifier
+                                            .markAttendance(context);
+                                        attendenceRecordsNotifier
+                                            .attendanceRecord(context, "Vipul",
+                                                "VIDL-001", "D");
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         elevation: 8,
                                         shape: const CircleBorder(),
@@ -337,9 +347,9 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
             ),
             ListView.builder(
               shrinkWrap: true,
-              itemCount: attendanceState.attendanceRecords.length,
+              itemCount: attendenceRecords.attendanceRecords.length,
               itemBuilder: (context, index) {
-                final record = attendanceState.attendanceRecords[index];
+                final employee = attendenceRecords.attendanceRecords[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6.0),
                   child: Card(
@@ -355,14 +365,14 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                           Column(
                             children: [
                               Text(
-                                "check in",
+                                "checkIn",
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w400,
                                   color: AllColours.green,
                                 ),
                               ),
                               Text(
-                                "${record['checkIn']}",
+                                employee.empname,
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w400,
                                   color: Colors.black,
@@ -383,7 +393,7 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
                                 ),
                               ),
                               Text(
-                                "${record['checkOut']}",
+                                employee.date,
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w400,
                                   color: Colors.black,

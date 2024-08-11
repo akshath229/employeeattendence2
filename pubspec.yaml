@@ -47,6 +47,9 @@ dependencies:
   provider: ^6.1.2
   riverpod: ^2.5.1
   flutter_riverpod: ^2.5.1
+  hive_flutter: ^1.1.0
+  hive: any
+
 
 dev_dependencies:
   flutter_test:

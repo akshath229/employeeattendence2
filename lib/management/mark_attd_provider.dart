@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geotest/api/attendencae_api.dart';
+import 'package:geotest/api/attendance_api.dart';
 import 'package:geotest/service/getlocation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -122,7 +122,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         'checkOutDateTime', checkOutDateTime.toIso8601String());
   }
 
-  Future<void> markAttendance(BuildContext context) async {
+  Future<void> markAttendance(BuildContext context, String checktype) async {
     state = state.copyWith(
         isLoading: true, loadingMessage: 'Getting your location');
 
@@ -153,7 +153,8 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         "locality": addressDetails['locality'],
         "date": date,
         "time": formattedTime,
-        "present": "1"
+        "present": "1",
+        "checktype" : "O"                  // checkin- I,checkout -O,break- B,
       };
 
       state = state.copyWith(loadingMessage: 'Marking attendance');
@@ -303,4 +304,5 @@ final attendanceProvider =
   final attendenceAPI = ref.watch(attendenceApiProvider);
   final locationService = ref.watch(locationServiceProvider);
   return AttendanceNotifier(attendenceAPI, locationService);
-});
+}
+);
