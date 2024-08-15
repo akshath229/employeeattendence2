@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geotest/api/attendance_api.dart';
 import 'package:geotest/const/Colours.dart';
-import 'package:geotest/management/apicallvalues.dart';
 import 'package:geotest/management/attend_detail.dart';
 import 'package:geotest/service/getlocation.dart';
 import 'package:geotest/widgets.dart/textfield.dart';
@@ -81,20 +80,45 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
   AttendanceNotifier(this.attendenceAPI, this.locationService)
       : super(AttendanceState()) {
-    _loadCheckInTime();
-    _loadCheckOutTime();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _clearSharedPreferencesOnFirstLaunch();
+    await _loadCheckInTime();
+    await _loadCheckOutTime();
+  }
+
+  Future<void> _clearSharedPreferencesOnFirstLaunch() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Check if this is the first launch
+    bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      // Clear the preferences if it's the first launch
+      await prefs.clear();
+
+      // Set the flag to false as the app has now been launched at least once
+      await prefs.setBool('isFirstLaunch', false);
+    }
   }
 
   Future<void> _loadCheckInTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final checkInTime = prefs.getString('checkInTime') ?? '--/--';
     final isCheckedIn = checkInTime != '--/--';
     final checkInDateTime = isCheckedIn
-        ? DateTime.parse(prefs.getString('checkInDateTime')!)
+        ? DateTime.tryParse(prefs.getString('checkInDateTime') ?? '')
         : null;
+
+    // Load the check-out time to determine if the user checked out
+    final checkOutTime = prefs.getString('checkOutTime') ?? '--/--';
+
     state = state.copyWith(
       checkInTime: checkInTime,
-      isCheckedIn: isCheckedIn,
+      isCheckedIn: isCheckedIn && checkOutTime == '--/--',
       checkInDateTime: checkInDateTime,
     );
   }
@@ -103,8 +127,18 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final checkOutTime = prefs.getString('checkOutTime') ?? '--/--';
     final checkOutDateTime = checkOutTime != '--/--'
-        ? DateTime.parse(prefs.getString('checkOutDateTime')!)
+        ? DateTime.tryParse(prefs.getString('checkOutDateTime') ?? '')
         : null;
+
+    // If checkout time is not '--/--', the user has checked out, so reset isCheckedIn to false
+    if (checkOutTime != '--/--') {
+      state = state.copyWith(
+        checkInTime: '--/--',
+        checkInDateTime: null,
+        isCheckedIn: false,
+      );
+    }
+
     state = state.copyWith(
       checkOutTime: checkOutTime,
       checkOutDateTime: checkOutDateTime,

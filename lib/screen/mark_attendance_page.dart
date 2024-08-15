@@ -345,6 +345,7 @@ class _HomePageContentState extends ConsumerState<HomePageContent> {
 
 // Inside your ListView.builder
             ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: attendenceRecords.attendanceRecords.length,
               itemBuilder: (context, index) {
